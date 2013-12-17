@@ -1,4 +1,4 @@
-usaco-training
+USACO Training Solutions
 ==============
 
-Solutions to USACO training problems
+My solutions to USACO training problems

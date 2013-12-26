@@ -1,0 +1,6 @@
+# For Vim
+*.swp
+
+# USACO input/output
+*.in
+*.out

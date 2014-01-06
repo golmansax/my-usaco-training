@@ -1,8 +1,9 @@
 /*
-ID: hogao81 
+ID: hogao81
 PROG: test
 LANG: C++
 */
+
 #include <iostream>
 #include <fstream>
 #include <string>

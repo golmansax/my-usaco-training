@@ -1,45 +1,18 @@
 /*
-ID: hogao81 
+ID: hogao81
 PROG: stamps
 LANG: C++
 */
+
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <set>
 #include <vector>
 #include <map>
 
 using namespace std;
-
-bool IsEqual(multiset<int>& a, multiset<int>& b) {
-  // Let's have two iterators to compare values
-  multiset<int>::iterator a_it = a.begin();
-  multiset<int>::iterator b_it = b.begin();
-
-  while (a_it != a.end() && b_it != b.end()) {
-    if (*a_it != *b_it) return false;
-    a_it++;
-    b_it++;
-  }
-
-  return (a_it == a.end()) && (b_it == b.end());
-}
-
-void PrintMultiset(multiset<int>& set) {
-  for (multiset<int>::iterator it = set.begin(); it != set.end(); it++) {
-    cout << *it << " ";
-  }
-  cout << endl;
-}
-
-int GetSum(multiset<int>& set) {
-  int sum = 0;
-  for (multiset<int>::iterator it = set.begin(); it != set.end(); it++) {
-    sum += *it;
-  }
-  return sum;
-}
 
 int main() {
   ofstream fout ("stamps.out");
@@ -54,75 +27,50 @@ int main() {
     vals.insert(x);
   }
 
+  // Copy set to an array
+  int n_vals = vals.size();
+  int arr[n_vals];
+  int arr_i = 0;
+  for (set<int>::iterator vals_it = vals.begin();
+       vals_it != vals.end(); vals_it++, arr_i++) {
+    arr[arr_i] = *vals_it;
+  }
+
   // Dynamic programming
-  // map of sum -> multisets that can generate it
-  map<int, vector<multiset<int> > > generators;
+  #define MAX 10001
 
-  // Initialize map
-  vector<multiset<int> > empty_generators;
-  multiset<int> empty_set;
-  empty_generators.push_back(empty_set);
-  generators[0] = empty_generators;
+  // Only need to keep track of possible size of set
+  int possible_sizes[MAX];
+  memset(possible_sizes, 0, sizeof(int) * MAX);
 
-  int current = 0, ans;
+  int current = 0, ans = 0;
   while(true) {
-    if (generators.find(current) == generators.end()) {
+    int my_size = possible_sizes[current];
+
+    if (current != 0 && my_size == 0) {
       // No value here so let's exit
-      ans = current - 1;
+      ans--;
       break;
     }
 
-    vector<multiset<int> >& my_generators = generators[current];
-    // Iterate through these and try to add vals
-    for (vector<multiset<int> >::iterator generators_it = 
-           my_generators.begin(); 
-         generators_it != my_generators.end(); generators_it++) {
+    // Limit size
+    if (my_size >= k) goto end;
 
-      int sum = GetSum(*generators_it);
-      cout << "*** " << sum << " ***" << endl;
-      //PrintMultiset(*generators_it);
+    for (int i = 0; i < n_vals; i++) {
+      int my_val = arr[i];
+      int next = (current + my_val) % MAX;
+      int to_compare = possible_sizes[next];
 
-      // Limit size
-      if (generators_it->size() >= k) continue;
-      //cout << "  processing" << endl;
-
-      for (set<int>::iterator vals_it = vals.begin();
-           vals_it != vals.end(); vals_it++) {
-
-        multiset<int> my_set(*generators_it);
-        my_set.insert(*vals_it);
-        int my_sum = sum + *vals_it;
-
-        if (generators.find(my_sum) == generators.end()) {
-          generators[my_sum].push_back(my_set);
-        }
-        else {
-          vector<multiset<int> >& my_vec = generators[my_sum];
-          if (my_set.size() < my_vec[0].size()) {
-            vector<multiset<int> > new_vec;
-            new_vec.push_back(my_set);
-            generators[my_sum] = new_vec;
-          }
-        }
-        /*
-        bool add = true;
-        // Iterate through the generators to see if it is already in the vec
-        for (vector<multiset<int> >::iterator vec_it = my_vec.begin();
-             vec_it != my_vec.end(); vec_it++) {
-          if (IsEqual(my_set, *vec_it)) {
-            add = false;
-            break;
-          }
-        }
-
-        if (add) generators[my_sum].push_back(my_set);
-        */
+      if (to_compare == 0 || my_size + 1 < to_compare) {
+        possible_sizes[next] = my_size + 1;
       }
     }
 
+   end:
     // Destroy the previous value (we don't need it anymore)
-    generators.erase(current);
-    current++;
+    possible_sizes[current] = 0;
+    ans++;
+    current = (current + 1) % MAX;
   }
 
   fout << ans << endl;
